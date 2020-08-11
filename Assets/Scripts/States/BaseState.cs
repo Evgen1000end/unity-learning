@@ -9,7 +9,7 @@ public abstract class BaseState
     public virtual void EnterState(AgentController controller)
     {
         this.controllerReference = controller;
-        Debug.Log("Enter state: " + GetType().Name);
+       // Debug.Log("Enter state: " + GetType().Name);
     }
     
     public virtual void HandleMovement(Vector2 input) {}

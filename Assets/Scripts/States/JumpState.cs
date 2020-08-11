@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
-namespace States
-{
+
     public class JumpState: BaseState
     {
         private bool landingTrigger = false;
@@ -49,4 +48,3 @@ namespace States
     
     
     
-}

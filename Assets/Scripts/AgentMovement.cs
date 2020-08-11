@@ -1,24 +1,38 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class AgentMovement : MonoBehaviour
 {
     protected CharacterController characterController;
+    protected HumanoidAnimations agentAnimations;
     public float movementSpeed;
     public float gravity;
     public float rotationSpeed;
-    protected Vector3 moveDirection = Vector3.zero;
-    protected float desiredRotationAngle = 0;
-    protected int inputVerticalDirection = 0;
-    protected HumanoidAnimations agentAnimations;
-
-    public int angleRotationTreshhold;
-
-    private bool isJumping = false;
-    private bool finishJumping = true;
-    
     public float jumpSpeed;
+
+    public int angleRotationThreshold;
+
+    public Vector3 moveDirection = Vector3.zero;
+
+    public bool IsGround()
+    {
+        return characterController.isGrounded;
+    }
+
+    protected float desiredRotationAngler = 0;
+
+    int inputVerticalDirection = 0;
+
+    bool isJumping = false;
+    bool finishedJumping = true;
+
+    private void Start()
+    {
+        characterController = GetComponent<CharacterController>();
+        agentAnimations = GetComponent<HumanoidAnimations>();
+    }
 
     public void HandleMovement(Vector2 input)
     {
@@ -38,9 +52,21 @@ public class AgentMovement : MonoBehaviour
             }
             else
             {
-                moveDirection = Vector3.zero;
                 agentAnimations.SetMovementFloat(0);
+                moveDirection = Vector3.zero;
             }
+        }
+
+        
+    }
+
+    public void HandleMovementDirection(Vector3 input)
+    {
+        desiredRotationAngler = Vector3.Angle(transform.forward, input);
+        var crossProduct = Vector3.Cross(transform.forward, input).y;
+        if(crossProduct < 0)
+        {
+            desiredRotationAngler *= -1;
         }
     }
 
@@ -49,98 +75,63 @@ public class AgentMovement : MonoBehaviour
         if (characterController.isGrounded)
         {
             isJumping = true;
-            Debug.Log("isJumping = true");
         }
     }
 
-
-    public void HandleMovementDirection(Vector3 input)
-    {
-        desiredRotationAngle = Vector3.Angle(transform.forward, input);
-        var crossProduct = Vector3.Cross(transform.forward, input).y;
-        if (crossProduct < 0)
-        {
-            desiredRotationAngle *= -1;
-        }
-        
-    }
-
-    
-    void Start()
-    {
-        characterController = GetComponent<CharacterController>();
-        agentAnimations = GetComponent<HumanoidAnimations>();
-        
-    }
-
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (characterController.isGrounded)
         {
             if (moveDirection.magnitude > 0)
             {
-                var animationSpeedMultiplier = agentAnimations.SetCorrectAnimation(desiredRotationAngle, angleRotationTreshhold, inputVerticalDirection);
+                var animationSpeedMultiplier = agentAnimations.SetCorrectAnimation(desiredRotationAngler, angleRotationThreshold, inputVerticalDirection);
                 RotateAgent();
                 moveDirection *= animationSpeedMultiplier;
-                
             }
         }
-        
         moveDirection.y -= gravity;
-
         if (isJumping)
         {
             isJumping = false;
-            finishJumping = false;
-            
+            finishedJumping = false;
             moveDirection.y = jumpSpeed;
             agentAnimations.SetMovementFloat(0);
             agentAnimations.TriggerJumpAnimation();
-            Debug.Log("Jump physics apply");
         }
-        
         characterController.Move(moveDirection * Time.deltaTime);
     }
 
     private void RotateAgent()
     {
-        if (desiredRotationAngle > angleRotationTreshhold || desiredRotationAngle < - angleRotationTreshhold)
+        if(desiredRotationAngler > angleRotationThreshold || desiredRotationAngler < -angleRotationThreshold)
         {
-            transform.Rotate(Vector3.up * desiredRotationAngle * rotationSpeed * Time.deltaTime);
+            transform.Rotate(Vector3.up * desiredRotationAngler * rotationSpeed * Time.deltaTime);
         }
     }
 
-    public void StopMovementImmediatelly()
+    public void StpMovementImmediatelly()
     {
         moveDirection = Vector3.zero;
-        finishJumping = false;
-
+        finishedJumping = false;
     }
 
     public bool HasFinishedJumping()
     {
-        return finishJumping;
+        return finishedJumping;
     }
 
-    public void SetFinishJumping()
+    public void SetFinishedJumping(bool value)
     {
-        finishJumping = true;
-    }
-    
-    public void SetFinishJumpingTrue()
-    {
-        finishJumping = true;
-    }
-    
-    public void SetFinishJumpingFalse()
-    {
-        finishJumping = false;
+        finishedJumping = value;
     }
 
-
-    public bool IsGround()
+    public void SetFinishedJumpingTrue()
     {
-        return characterController.isGrounded;
+        finishedJumping = true;
+    }
+
+    public void SetFinishedJumpingFalse()
+    {
+        finishedJumping = false;
     }
 }

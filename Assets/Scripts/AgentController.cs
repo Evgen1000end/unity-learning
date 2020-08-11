@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using States;
 using UnityEngine;
 
 public class AgentController : MonoBehaviour
@@ -14,8 +13,8 @@ public class AgentController : MonoBehaviour
     public readonly BaseState movementState = new MovementState();
     public readonly BaseState jumpState = new JumpState();
     public readonly BaseState fallingState = new FallingState();
-    
-    void OnEnable()
+
+    private void OnEnable()
     {
         movement = GetComponent<AgentMovement>();
         input = GetComponent<PlayerInput>();
@@ -23,6 +22,7 @@ public class AgentController : MonoBehaviour
         currentState = movementState;
         currentState.EnterState(this);
         AssignMovementInputListeners();
+
     }
 
     private void AssignMovementInputListeners()
@@ -35,14 +35,15 @@ public class AgentController : MonoBehaviour
         currentState.HandleJumpInput();
     }
 
+    private void Update()
+    {
+        currentState.Update();
+    }
+
+
     private void OnDisable()
     {
         input.OnJump -= currentState.HandleJumpInput;
-    }
-
-    void Update()
-    {
-        currentState.Update();
     }
 
     public void TransitionToState(BaseState state)
